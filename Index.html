@@ -1,0 +1,1075 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <base target="_top">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Team Performance</title>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <style>
+    :root {
+      --bg: #08101f;
+      --panel: #182437;
+      --panel2: #111c2f;
+      --border: #34455e;
+      --text: #f2f5fb;
+      --muted: #8fa5c3;
+      --blue: #4d96ff;
+      --green: #16c784;
+      --yellow: #ffbf19;
+      --red: #ff5d79;
+      --purple: #b05cff;
+      --cyan: #12cde8;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: Inter, Arial, sans-serif;
+    }
+
+    .page {
+      max-width: 1320px;
+      margin: 14px auto 40px;
+      padding: 0 18px;
+    }
+
+    .hero {
+      position: relative;
+      display: grid;
+      grid-template-columns: 1fr 1.35fr;
+      gap: 34px;
+      align-items: center;
+      min-height: 155px;
+      padding: 28px 24px;
+      background: linear-gradient(135deg, #1c2a3e, #172336);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      box-shadow: 0 12px 28px rgba(0,0,0,.28);
+      overflow: hidden;
+    }
+
+    .hero:before {
+      content: "";
+      position: absolute;
+      left: 0; right: 0; top: 0;
+      height: 4px;
+      background: linear-gradient(90deg, #3d8bff, #a34cff);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
+
+    .logo {
+      width: 58px;
+      height: 58px;
+      border: 1px solid #34455e;
+      border-radius: 10px;
+      background: #0e1a2d;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #62a8ff;
+      box-shadow: 0 5px 12px rgba(0,0,0,.35);
+    }
+
+    .logo svg { width: 34px; height: 34px; }
+
+    h1 {
+      margin: 0;
+      font-size: 39px;
+      font-weight: 400;
+      letter-spacing: -1.5px;
+    }
+
+    .tagline {
+      margin-top: 5px;
+      color: #8fb2de;
+      font-size: 14px;
+    }
+
+    .filters {
+      background: #0f1a2c;
+      border: 1px solid #22344d;
+      border-radius: 14px;
+      padding: 15px;
+      display: grid;
+      grid-template-columns: 1.1fr 1fr 1fr auto;
+      gap: 14px;
+      align-items: end;
+    }
+
+    label {
+      display: block;
+      color: #8eabce;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      margin: 0 0 7px 2px;
+    }
+
+    select, input {
+      width: 100%;
+      height: 38px;
+      background: #1a273a;
+      color: white;
+      border: 1px solid #40536c;
+      border-radius: 7px;
+      padding: 0 12px;
+      font-size: 14px;
+      outline: none;
+    }
+
+    select:focus, input:focus {
+      border-color: var(--blue);
+    }
+
+    button {
+      height: 38px;
+      border: 0;
+      border-radius: 7px;
+      padding: 0 22px;
+      background: linear-gradient(#397cf1, #2864d8);
+      color: white;
+      font-weight: 800;
+      cursor: pointer;
+      box-shadow: 0 4px 8px rgba(0,0,0,.28);
+    }
+
+    button:hover { filter: brightness(1.08); }
+
+    .grid6 {
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      gap: 16px;
+      margin-top: 32px;
+    }
+
+    .card {
+      background: linear-gradient(145deg, #192638, #172336);
+      border: 1px solid var(--border);
+      border-radius: 15px;
+      box-shadow: 0 9px 20px rgba(0,0,0,.22);
+    }
+
+    .kpi {
+      min-height: 106px;
+      padding: 20px 22px;
+      border-left: 4px solid var(--blue);
+    }
+
+    .kpi.green { border-left-color: var(--green); }
+    .kpi.blue { border-left-color: var(--blue); }
+    .kpi.yellow { border-left-color: var(--yellow); }
+    .kpi.red { border-left-color: var(--red); }
+    .kpi.purple { border-left-color: var(--purple); }
+    .kpi.cyan { border-left-color: var(--cyan); }
+
+    .eyebrow {
+      color: #91a8c5;
+      font-size: 11px;
+      letter-spacing: 1.2px;
+      font-weight: 700;
+    }
+
+    .value {
+      margin-top: 10px;
+      font-size: 34px;
+      line-height: 1;
+    }
+
+    .green-text { color: #1ce094; }
+    .blue-text { color: #5c9bff; }
+    .yellow-text { color: #ffbe17; }
+    .red-text { color: #ff6680; }
+    .purple-text { color: #bd78ff; }
+    .cyan-text { color: #18d7ee; }
+
+    .grid3 {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 24px;
+      margin-top: 24px;
+    }
+
+    .summary {
+      min-height: 140px;
+      padding: 27px 24px;
+    }
+
+    .split {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .progress {
+      height: 9px;
+      margin-top: 20px;
+      border-radius: 10px;
+      background: #202f45;
+      overflow: hidden;
+    }
+
+    .progress > div {
+      height: 100%;
+      background: var(--green);
+      width: 0;
+      transition: width .3s;
+    }
+
+    .risk-title { font-size: 26px; margin-top: 15px; }
+    .risk-high { color: #ff6079; }
+    .risk-medium { color: #ffbf19; }
+    .risk-low { color: #19d893; }
+
+    .status-line {
+      margin-top: 16px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 15px;
+    }
+
+    .dot {
+      width: 12px;
+      height: 12px;
+      background: #2bd49a;
+      border-radius: 50%;
+      display: inline-block;
+    }
+
+    .small-muted {
+      color: #7891b1;
+      font-size: 13px;
+      margin-top: 12px;
+    }
+
+    .section {
+      margin-top: 32px;
+      padding: 25px;
+    }
+
+    .section-title {
+      font-size: 20px;
+      margin-bottom: 18px;
+    }
+
+    .charts {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+      margin-top: 32px;
+    }
+
+    .chart-card {
+      padding: 25px;
+      min-height: 405px;
+    }
+
+    .chart-wrap {
+      position: relative;
+      height: 310px;
+    }
+
+    .wide-chart {
+      min-height: 465px;
+    }
+
+    .wide-chart .chart-wrap {
+      height: 365px;
+    }
+
+    .bottlenecks {
+      padding: 24px;
+    }
+
+    .bottleneck-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+    }
+
+    .bottle {
+      padding: 20px;
+      border: 1px solid #394b63;
+      border-left: 4px solid var(--yellow);
+      border-radius: 15px;
+      background: #182537;
+    }
+
+    .bottle-head {
+      display: flex;
+      justify-content: space-between;
+      font-weight: 800;
+      margin-bottom: 22px;
+    }
+
+    .badge {
+      background: rgba(255,191,25,.14);
+      color: #ffbf19;
+      border-radius: 20px;
+      padding: 6px 10px;
+      font-size: 10px;
+    }
+
+    .bottle-stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+    }
+
+    .stat-label {
+      color: #91a8c5;
+      font-size: 12px;
+    }
+
+    .stat-value {
+      margin-top: 7px;
+      font-size: 20px;
+    }
+
+    .table-section { padding: 24px; }
+
+    .table-scroll { overflow-x: auto; }
+
+    table {
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 0;
+      border: 1px solid #34465f;
+      border-radius: 9px;
+      overflow: hidden;
+    }
+
+    th, td {
+      padding: 15px 14px;
+      border-bottom: 1px solid #2c3c54;
+      text-align: left;
+      font-size: 14px;
+    }
+
+    th {
+      color: #90acd0;
+      font-size: 11px;
+      letter-spacing: 1px;
+      background: #1c2a3e;
+    }
+
+    tr:last-child td { border-bottom: 0; }
+
+    .risk-badge {
+      display: inline-block;
+      border-radius: 18px;
+      padding: 6px 11px;
+      font-size: 10px;
+      font-weight: 800;
+    }
+
+    .risk-badge.high {
+      background: rgba(255,78,113,.13);
+      color: #ff6680;
+    }
+
+    .risk-badge.medium {
+      background: rgba(255,191,25,.13);
+      color: #ffbf19;
+    }
+
+    .risk-badge.low {
+      background: rgba(24,215,144,.13);
+      color: #19d893;
+    }
+
+    .alerts {
+      padding: 25px;
+    }
+
+    .alert-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 18px;
+    }
+
+    .alert-count {
+      color: #ff6680;
+      background: rgba(255,78,113,.12);
+      padding: 6px 11px;
+      border-radius: 20px;
+      font-size: 10px;
+      font-weight: 800;
+    }
+
+    .alert {
+      display: flex;
+      justify-content: space-between;
+      gap: 20px;
+      padding: 15px 16px;
+      margin: 10px 0;
+      border: 1px solid #5c3d49;
+      border-radius: 9px;
+      background: rgba(255,78,113,.07);
+      color: #ff7c8e;
+    }
+
+    .alert.reason, .alert.duration {
+      border-color: #75572a;
+      background: rgba(255,191,25,.05);
+      color: #ffc52e;
+    }
+
+    .alert-type {
+      font-size: 10px;
+      font-weight: 800;
+      white-space: nowrap;
+      align-self: center;
+    }
+
+    .expand-wrap {
+      display: flex;
+      justify-content: center;
+      margin-top: 20px;
+    }
+
+    .expand-btn {
+      background: #18283e;
+      border: 1px solid #3a4e69;
+      color: #8eadd2;
+      box-shadow: none;
+    }
+
+    .hidden-alert { display: none; }
+
+    .loading {
+      opacity: .65;
+      pointer-events: none;
+    }
+
+    .error {
+      color: #ff7187;
+      padding: 15px;
+      text-align: center;
+    }
+
+    @media (max-width: 1050px) {
+      .hero { grid-template-columns: 1fr; }
+      .grid6 { grid-template-columns: repeat(3, 1fr); }
+      .grid3, .charts { grid-template-columns: 1fr; }
+    }
+
+    @media (max-width: 650px) {
+      .page { padding: 0 10px; }
+      .grid6 { grid-template-columns: 1fr 1fr; }
+      .filters { grid-template-columns: 1fr; }
+      .bottleneck-grid { grid-template-columns: 1fr; }
+      h1 { font-size: 31px; }
+    }
+  </style>
+</head>
+
+<body>
+<div class="page" id="app">
+
+  <header class="hero">
+    <div class="brand">
+      <div class="logo" aria-label="Team Performance logo">
+        <svg viewBox="0 0 40 40" fill="none">
+          <rect x="6" y="21" width="6" height="13" rx="1" stroke="currentColor" stroke-width="2.2"/>
+          <rect x="17" y="14" width="6" height="20" rx="1" stroke="currentColor" stroke-width="2.2"/>
+          <rect x="28" y="7" width="6" height="27" rx="1" stroke="currentColor" stroke-width="2.2"/>
+        </svg>
+      </div>
+      <div>
+        <h1>Team Performance</h1>
+        <div class="tagline">Real-time operational analytics and operator scorecards</div>
+      </div>
+    </div>
+
+    <div class="filters">
+      <div>
+        <label>FILTER BY AGENT</label>
+        <select id="agentSelect"></select>
+      </div>
+      <div>
+        <label>START DATE</label>
+        <input id="startDate" type="date">
+      </div>
+      <div>
+        <label>END DATE</label>
+        <input id="endDate" type="date">
+      </div>
+      <button id="applyBtn" onclick="loadDashboard()">APPLY DATES</button>
+    </div>
+  </header>
+
+  <section class="grid6">
+    <div class="card kpi green"><div class="eyebrow">COMPLETED</div><div id="completed" class="value green-text">...</div></div>
+    <div class="card kpi blue"><div class="eyebrow">COMPLETION RATE</div><div id="completionRate" class="value blue-text">...</div></div>
+    <div class="card kpi yellow"><div class="eyebrow">INCOMPLETE</div><div id="incomplete" class="value yellow-text">...</div></div>
+    <div class="card kpi red"><div class="eyebrow">REQUEUE RATE</div><div id="requeueRate" class="value red-text">...</div></div>
+    <div class="card kpi purple"><div class="eyebrow">AVG DURATION</div><div id="avgDuration" class="value purple-text">...</div></div>
+    <div class="card kpi cyan"><div class="eyebrow">TODAY'S PACE</div><div id="todayPace" class="value cyan-text">...</div></div>
+  </section>
+
+  <section class="grid3">
+    <div class="card summary">
+      <div class="split">
+        <div><div class="eyebrow">DAILY TARGET</div><div id="dailyTarget" class="value">20</div></div>
+        <div style="text-align:right"><div class="eyebrow">ATTAINMENT</div><div id="attainment" class="value">...</div></div>
+      </div>
+      <div class="progress"><div id="attainmentBar"></div></div>
+    </div>
+
+    <div class="card summary">
+      <div class="eyebrow">OPERATIONAL RISK</div>
+      <div id="riskTitle" class="risk-title">Calculating...</div>
+      <div id="riskSub" class="small-muted">Please wait while the data is analyzed.</div>
+    </div>
+
+    <div class="card summary">
+      <div class="eyebrow">DASHBOARD STATUS</div>
+      <div class="status-line"><span class="dot"></span><span id="statusText">Loading...</span></div>
+      <div id="recordCount" class="small-muted"></div>
+    </div>
+  </section>
+
+  <section class="charts">
+    <div class="card chart-card">
+      <div id="orgTitle" class="section-title">Team Performance by Organization</div>
+      <div class="chart-wrap"><canvas id="orgChart"></canvas></div>
+    </div>
+
+    <div class="card chart-card">
+      <div id="reasonTitle" class="section-title">Reasons Breakdown</div>
+      <div class="chart-wrap"><canvas id="reasonChart"></canvas></div>
+    </div>
+  </section>
+
+  <section class="card chart-card wide-chart">
+    <div id="trendTitle" class="section-title">Trend — Last 7 Days</div>
+    <div class="chart-wrap"><canvas id="trendChart"></canvas></div>
+  </section>
+
+  <section class="card bottlenecks">
+    <div class="section-title">Operational Bottlenecks</div>
+    <div id="bottleneckGrid" class="bottleneck-grid"></div>
+  </section>
+
+  <section class="card table-section">
+    <div class="split" style="margin-bottom:18px">
+      <div id="scorecardTitle" class="section-title" style="margin:0">Scorecard Details</div>
+      <div class="eyebrow">PERFORMANCE DETAIL</div>
+    </div>
+    <div class="table-scroll">
+      <table>
+        <thead>
+          <tr>
+            <th>RANK</th>
+            <th>AGENT</th>
+            <th>ORGANIZATION</th>
+            <th>COMPLETED</th>
+            <th>INCOMPLETE</th>
+            <th>REQUEUED</th>
+            <th>COMPLETION %</th>
+            <th>RISK</th>
+          </tr>
+        </thead>
+        <tbody id="scorecardBody"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="card alerts">
+    <div class="alert-head">
+      <div class="section-title" style="margin:0">Operational Alerts</div>
+      <div id="alertCount" class="alert-count">0 ALERTS</div>
+    </div>
+    <div id="alertList"></div>
+    <div id="expandWrap" class="expand-wrap" style="display:none">
+      <button class="expand-btn" onclick="toggleAlerts()" id="expandBtn">Show all alerts ↓</button>
+    </div>
+  </section>
+
+  <div id="errorBox" class="error"></div>
+</div>
+
+<script>
+  const DAILY_TARGET = 20;
+  const INCOMPLETE_THRESHOLD = 0.30;
+
+  let dashboardData = null;
+  let rawRows = [];
+  let orgChart = null;
+  let reasonChart = null;
+  let trendChart = null;
+  let alertsExpanded = false;
+
+  function esc(v) {
+    return String(v ?? '').replace(/[&<>"']/g, s => ({
+      '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#039;'
+    }[s]));
+  }
+
+  function fmtPct(n) {
+    return (n * 100).toFixed(1) + '%';
+  }
+
+  function formatDuration(seconds) {
+    if (!seconds || seconds <= 0) return '0m';
+    const mins = Math.round(seconds / 60);
+    const h = Math.floor(mins / 60);
+    const m = mins % 60;
+    return h ? `${h}h ${m}m` : `${m}m`;
+  }
+
+  function getSelectedAgent() {
+    return document.getElementById('agentSelect').value || 'ALL';
+  }
+
+  function filterRows() {
+    const agent = getSelectedAgent();
+    if (agent === 'ALL') return rawRows.slice();
+    return rawRows.filter(r => r.agent === agent);
+  }
+
+  function init() {
+    const today = new Date();
+    const monthStart = new Date(today.getFullYear(), today.getMonth(), 1);
+
+    document.getElementById('startDate').value = toInputDate(monthStart);
+    document.getElementById('endDate').value = toInputDate(today);
+
+    google.script.run
+      .withSuccessHandler(setAgents)
+      .withFailureHandler(showError)
+      .getDashboardData(
+        document.getElementById('startDate').value,
+        document.getElementById('endDate').value
+      );
+
+    loadDashboard();
+  }
+
+  function toInputDate(d) {
+    const y = d.getFullYear();
+    const m = String(d.getMonth()+1).padStart(2,'0');
+    const day = String(d.getDate()).padStart(2,'0');
+    return `${y}-${m}-${day}`;
+  }
+
+  function setAgents(data) {
+    dashboardData = data;
+    const select = document.getElementById('agentSelect');
+    const current = select.value;
+    select.innerHTML = '<option value="ALL">All Agents (Team View)</option>';
+
+    Object.keys(data.agents || {}).sort().forEach(agent => {
+      const o = document.createElement('option');
+      o.value = agent;
+      o.textContent = agent;
+      select.appendChild(o);
+    });
+
+    if (current) select.value = current;
+  }
+
+  function loadDashboard() {
+    document.getElementById('app').classList.add('loading');
+    document.getElementById('statusText').textContent = 'Updating...';
+    document.getElementById('errorBox').textContent = '';
+
+    const start = document.getElementById('startDate').value;
+    const end = document.getElementById('endDate').value;
+
+    google.script.run
+      .withSuccessHandler(data => {
+        dashboardData = data;
+
+        google.script.run
+          .withSuccessHandler(rows => {
+            rawRows = rows || [];
+            render();
+          })
+          .withFailureHandler(showError)
+          .getRawRows(start, end);
+
+        google.script.run
+          .withSuccessHandler(renderTrend)
+          .withFailureHandler(showError)
+          .getTrendData(7);
+      })
+      .withFailureHandler(showError)
+      .getDashboardData(start, end);
+  }
+
+  function getViewData() {
+    const agent = getSelectedAgent();
+
+    if (agent === 'ALL') {
+      return {
+        name: 'Team',
+        totals: dashboardData.global.totals,
+        orgs: dashboardData.global.orgs,
+        incompleteReasons: dashboardData.global.incompleteReasons,
+        requeueReasons: dashboardData.global.requeueReasons
+      };
+    }
+
+    const a = dashboardData.agents[agent];
+    return {
+      name: agent,
+      totals: a ? a.totals : {completed:0,incomplete:0,requeued:0},
+      orgs: a ? a.orgs : {},
+      incompleteReasons: a ? a.incompleteReasons : {},
+      requeueReasons: a ? a.requeueReasons : {}
+    };
+  }
+
+  function render() {
+    const view = getViewData();
+    const t = view.totals;
+    const total = t.completed + t.incomplete + t.requeued;
+    const completion = total ? t.completed / total : 0;
+    const requeue = total ? t.requeued / total : 0;
+    const incomplete = total ? t.incomplete / total : 0;
+
+    document.getElementById('completed').textContent = t.completed;
+    document.getElementById('incomplete').textContent = t.incomplete;
+    document.getElementById('completionRate').textContent = fmtPct(completion);
+    document.getElementById('requeueRate').textContent = fmtPct(requeue);
+
+    const rows = filterRows();
+    const durations = rows.map(r => r.durationSec).filter(v => v != null && v >= 0);
+    const avgSec = durations.length
+      ? durations.reduce((a,b) => a+b,0) / durations.length
+      : 0;
+
+    document.getElementById('avgDuration').textContent = formatDuration(avgSec);
+
+    const todayStr = toInputDate(new Date());
+    const todayRows = rows.filter(r => {
+      const d = new Date();
+      return false;
+    });
+    const pace = Math.min(100, (t.completed / DAILY_TARGET) * 100);
+    document.getElementById('todayPace').textContent =
+      (new Date().toDateString() ? '0.0%' : '0.0%');
+
+    document.getElementById('dailyTarget').textContent = DAILY_TARGET;
+    document.getElementById('attainment').textContent = fmtPct(Math.min(1, t.completed / DAILY_TARGET));
+    document.getElementById('attainmentBar').style.width =
+      Math.min(100, (t.completed / DAILY_TARGET) * 100) + '%';
+
+    const risk = incomplete >= 0.50 || requeue >= 0.10
+      ? 'High'
+      : incomplete >= 0.30 || requeue >= 0.05
+        ? 'Medium'
+        : 'Low';
+
+    const riskTitle = document.getElementById('riskTitle');
+    riskTitle.textContent = risk;
+    riskTitle.className = 'risk-title ' + (
+      risk === 'High' ? 'risk-high' :
+      risk === 'Medium' ? 'risk-medium' : 'risk-low'
+    );
+
+    document.getElementById('riskSub').textContent =
+      `Incomplete: ${fmtPct(incomplete)} • Requeued: ${fmtPct(requeue)}`;
+
+    document.getElementById('statusText').textContent =
+      `Live • Updated ${new Date().toLocaleTimeString()}`;
+    document.getElementById('recordCount').textContent =
+      `${total} records analyzed`;
+
+    const prefix = view.name === 'Team' ? 'Team' : view.name + "'s";
+    document.getElementById('orgTitle').textContent =
+      `${prefix} Performance by Organization`;
+    document.getElementById('reasonTitle').textContent =
+      `${prefix} Reasons Breakdown`;
+    document.getElementById('scorecardTitle').textContent =
+      `${prefix} Scorecard Details`;
+    document.getElementById('trendTitle').textContent =
+      `${prefix} Trend — Last 7 Days`;
+
+    renderOrgChart(view.orgs);
+    renderReasonChart(view.incompleteReasons, view.requeueReasons);
+    renderBottlenecks(view.orgs);
+    renderScorecard(view);
+    renderAlerts(rows);
+
+    document.getElementById('app').classList.remove('loading');
+  }
+
+  function renderOrgChart(orgs) {
+    const labels = Object.keys(orgs);
+    const completed = labels.map(k => orgs[k].completed || 0);
+    const incomplete = labels.map(k => orgs[k].incomplete || 0);
+    const requeued = labels.map(k => orgs[k].requeued || 0);
+
+    if (orgChart) orgChart.destroy();
+
+    orgChart = new Chart(document.getElementById('orgChart'), {
+      type: 'bar',
+      data: {
+        labels,
+        datasets: [
+          { label:'Completed', data:completed, backgroundColor:'#16c784', borderRadius:4 },
+          { label:'Incomplete', data:incomplete, backgroundColor:'#ffae0a', borderRadius:4 },
+          { label:'Requeued', data:requeued, backgroundColor:'#ff4d62', borderRadius:4 }
+        ]
+      },
+      options: {
+        responsive:true,
+        maintainAspectRatio:false,
+        scales:{
+          x:{ stacked:true, ticks:{color:'#91a8c5'}, grid:{color:'#34445b'} },
+          y:{ stacked:true, beginAtZero:true, ticks:{color:'#91a8c5'}, grid:{color:'#34445b'} }
+        },
+        plugins:{
+          legend:{ labels:{color:'#a4b6ce'} }
+        }
+      }
+    });
+  }
+
+  function renderReasonChart(incompleteReasons, requeueReasons) {
+    const inc = Object.values(incompleteReasons || {}).reduce((a,b)=>a+b,0);
+    const req = Object.values(requeueReasons || {}).reduce((a,b)=>a+b,0);
+
+    if (reasonChart) reasonChart.destroy();
+
+    reasonChart = new Chart(document.getElementById('reasonChart'), {
+      type:'doughnut',
+      data:{
+        labels:['Incomplete','Requeue'],
+        datasets:[{
+          data:[inc,req],
+          backgroundColor:['#ffb71b','#ff4d62'],
+          borderColor:'#182638',
+          borderWidth:2
+        }]
+      },
+      options:{
+        responsive:true,
+        maintainAspectRatio:false,
+        cutout:'68%',
+        plugins:{
+          legend:{labels:{color:'#a4b6ce'}}
+        }
+      }
+    });
+  }
+
+  function renderTrend(data) {
+    if (!data) return;
+
+    if (trendChart) trendChart.destroy();
+
+    trendChart = new Chart(document.getElementById('trendChart'), {
+      type:'line',
+      data:{
+        labels:data.labels,
+        datasets:[
+          {label:'Completed',data:data.completed,borderColor:'#16c784',backgroundColor:'rgba(22,199,132,.12)',fill:true,tension:.35},
+          {label:'Incomplete',data:data.incomplete,borderColor:'#ffae0a',backgroundColor:'rgba(255,174,10,.08)',fill:true,tension:.35},
+          {label:'Requeued',data:data.requeued,borderColor:'#ff4d62',backgroundColor:'rgba(255,77,98,.06)',fill:true,tension:.35}
+        ]
+      },
+      options:{
+        responsive:true,
+        maintainAspectRatio:false,
+        scales:{
+          x:{ticks:{color:'#91a8c5'},grid:{color:'#34445b'}},
+          y:{beginAtZero:true,ticks:{color:'#91a8c5'},grid:{color:'#34445b'}}
+        },
+        plugins:{legend:{labels:{color:'#a4b6ce'}}}
+      }
+    });
+  }
+
+  function renderBottlenecks(orgs) {
+    const items = Object.entries(orgs).map(([org,v]) => {
+      const total = v.completed + v.incomplete + v.requeued;
+      const inc = total ? v.incomplete/total : 0;
+      const req = total ? v.requeued/total : 0;
+      return {org, volume:total, inc, req};
+    }).sort((a,b) => (b.inc+b.req)-(a.inc+a.req)).slice(0,3);
+
+    const grid = document.getElementById('bottleneckGrid');
+
+    if (!items.length) {
+      grid.innerHTML = '<div class="small-muted">No bottleneck data available.</div>';
+      return;
+    }
+
+    grid.innerHTML = items.map(x => {
+      const risk = x.inc >= .5 || x.req >= .1 ? 'HIGH' : 'MEDIUM';
+      return `
+        <div class="bottle">
+          <div class="bottle-head">
+            <span>${esc(x.org)}</span>
+            <span class="badge">${risk}</span>
+          </div>
+          <div class="bottle-stats">
+            <div><div class="stat-label">Volume</div><div class="stat-value">${x.volume}</div></div>
+            <div><div class="stat-label">Incomplete</div><div class="stat-value yellow-text">${fmtPct(x.inc)}</div></div>
+            <div><div class="stat-label">Requeue</div><div class="stat-value red-text">${fmtPct(x.req)}</div></div>
+          </div>
+        </div>`;
+    }).join('');
+  }
+
+  function renderScorecard(view) {
+    const rows = Object.entries(view.orgs).map(([org,v]) => {
+      const total = v.completed + v.incomplete + v.requeued;
+      const completion = total ? v.completed/total : 0;
+      const risk = completion < .5 ? 'HIGH' : completion < .8 ? 'MEDIUM' : 'LOW';
+      return {org,v,total,completion,risk};
+    }).sort((a,b)=>b.completion-a.completion);
+
+    const agent = getSelectedAgent() === 'ALL' ? 'Team' : getSelectedAgent();
+
+    document.getElementById('scorecardBody').innerHTML = rows.map((r,i)=>`
+      <tr>
+        <td>${i+1}</td>
+        <td><strong>${esc(agent)}</strong></td>
+        <td>${esc(r.org)}</td>
+        <td class="green-text">${r.v.completed}</td>
+        <td class="yellow-text">${r.v.incomplete}</td>
+        <td class="red-text">${r.v.requeued}</td>
+        <td class="blue-text">${fmtPct(r.completion)}</td>
+        <td><span class="risk-badge ${r.risk.toLowerCase()}">${r.risk}</span></td>
+      </tr>
+    `).join('');
+  }
+
+  function buildAlerts(rows) {
+    const byAgent = {};
+
+    rows.forEach(r => {
+      if (!byAgent[r.agent]) {
+        byAgent[r.agent] = {
+          total:0, incomplete:0, requeued:0,
+          reasons:{}, durations:[]
+        };
+      }
+      const a = byAgent[r.agent];
+      a.total++;
+      if (r.status === 'incomplete') a.incomplete++;
+      if (r.status === 'requeued') a.requeued++;
+      if (r.status !== 'completed') {
+        a.reasons[r.reason] = (a.reasons[r.reason] || 0) + 1;
+      }
+      if (r.durationSec != null) a.durations.push(r.durationSec);
+    });
+
+    const alerts = [];
+
+    Object.entries(byAgent).forEach(([agent,a]) => {
+      const rate = a.total ? a.incomplete/a.total : 0;
+
+      if (rate > INCOMPLETE_THRESHOLD) {
+        alerts.push({
+          type:'INCOMPLETE RATE',
+          cls:'',
+          text:`${agent} has a ${(rate*100).toFixed(1)}% incomplete rate (${a.incomplete}/${a.total}).`
+        });
+      }
+
+      Object.entries(a.reasons).forEach(([reason,count]) => {
+        if (count >= 3) {
+          alerts.push({
+            type:'REASON SPIKE',
+            cls:'reason',
+            text:`${agent}: "${reason}" occurred ${count} times.`
+          });
+        }
+      });
+
+      if (a.requeued >= 2) {
+        alerts.push({
+          type:'REQUEUE',
+          cls:'',
+          text:`${agent} has ${a.requeued} requeued tasks.`
+        });
+      }
+
+      if (a.durations.length) {
+        const avg = a.durations.reduce((x,y)=>x+y,0)/a.durations.length;
+        if (avg > 3600) {
+          alerts.push({
+            type:'AVERAGE DURATION',
+            cls:'duration',
+            text:`${agent}'s average task duration is unusually high (${Math.round(avg/60)} minutes).`
+          });
+        }
+      }
+    });
+
+    return alerts;
+  }
+
+  function renderAlerts(rows) {
+    const agent = getSelectedAgent();
+    const filtered = agent === 'ALL'
+      ? rows
+      : rows.filter(r => r.agent === agent);
+
+    const alerts = buildAlerts(filtered);
+    document.getElementById('alertCount').textContent =
+      `${alerts.length} ALERT${alerts.length === 1 ? '' : 'S'}`;
+
+    const list = document.getElementById('alertList');
+    alertsExpanded = false;
+
+    list.innerHTML = alerts.map((a,i)=>`
+      <div class="alert ${a.cls} ${i >= 10 ? 'hidden-alert' : ''}" data-alert-index="${i}">
+        <span>${esc(a.text)}</span>
+        <span class="alert-type">${a.type}</span>
+      </div>
+    `).join('');
+
+    const wrap = document.getElementById('expandWrap');
+
+    if (alerts.length > 10) {
+      wrap.style.display = 'flex';
+      document.getElementById('expandBtn').textContent = 'Show all alerts ↓';
+    } else {
+      wrap.style.display = 'none';
+    }
+  }
+
+  function toggleAlerts() {
+    alertsExpanded = !alertsExpanded;
+
+    document.querySelectorAll('.hidden-alert').forEach(el => {
+      el.style.display = alertsExpanded ? 'flex' : 'none';
+    });
+
+    document.getElementById('expandBtn').textContent =
+      alertsExpanded ? 'Show fewer alerts ↑' : 'Show all alerts ↓';
+  }
+
+  function showError(err) {
+    document.getElementById('app').classList.remove('loading');
+    document.getElementById('statusText').textContent = 'Unable to load';
+    document.getElementById('errorBox').textContent =
+      'Dashboard error: ' + (err && err.message ? err.message : err);
+  }
+
+  document.getElementById('agentSelect').addEventListener('change', () => {
+    if (dashboardData && rawRows.length) render();
+  });
+
+  init();
+</script>
+</body>
+</html>
